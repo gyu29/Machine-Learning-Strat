@@ -31,7 +31,7 @@ A comprehensive machine learning framework for predicting S&P 500 price movement
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/sp500-prediction-strategy.git
+   git clone https://github.com/gyu29/Machine-Learning-Strat
    cd sp500-prediction-strategy
    ```
 
