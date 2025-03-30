@@ -9,10 +9,9 @@ from typing import Dict, List, Tuple, Union, Optional
 class MarketDataLoader:
     def __init__(self, api_key: Optional[str] = None):
         self.fred = Fred(api_key=api_key) if api_key else None
-        yf.pdr_override()
         
     def get_sp500_data(self, start_date: str, end_date: str) -> pd.DataFrame:
-        sp500 = pdr.get_data_yahoo('^GSPC', start=start_date, end=end_date)
+        sp500 = yf.download('^GSPC', start=start_date, end=end_date)
         return sp500
     
     def get_macroeconomic_data(self, indicators: List[str], start_date: str, end_date: str) -> Dict[str, pd.Series]:
@@ -28,23 +27,48 @@ class MarketDataLoader:
     def get_sector_etfs(self, sectors: List[str], start_date: str, end_date: str) -> Dict[str, pd.DataFrame]:
         sector_data = {}
         for sector in sectors:
-            sector_data[sector] = pdr.get_data_yahoo(sector, start=start_date, end=end_date)
+            sector_data[sector] = yf.download(sector, start=start_date, end=end_date)
         
         return sector_data
     
     def get_vix_data(self, start_date: str, end_date: str) -> pd.DataFrame:
-        vix = pdr.get_data_yahoo('^VIX', start=start_date, end=end_date)
+        vix = yf.download('^VIX', start=start_date, end=end_date)
         return vix
     
     def merge_datasets(self, market_data: pd.DataFrame, macro_data: Dict[str, pd.Series], 
                       fill_method: str = 'ffill') -> pd.DataFrame:
+        mkt_df = market_data.copy()
+        
         macro_df = pd.DataFrame(macro_data)
-        merged = pd.merge(market_data, macro_df, left_index=True, right_index=True, how='left')
+        
+        if isinstance(mkt_df.columns, pd.MultiIndex):
+            mkt_df.columns = [f"{col[0]}_{col[1]}" for col in mkt_df.columns]
+        
+        mkt_df.index = pd.to_datetime(mkt_df.index)
+        macro_df.index = pd.to_datetime(macro_df.index)
+        
+        resampled_macro = macro_df.resample('B').ffill()
+        
+        merged = pd.concat([mkt_df, resampled_macro], axis=1)
         
         if fill_method == 'ffill':
-            merged = merged.fillna(method='ffill')
+            for col in macro_df.columns:
+                if col in merged.columns and merged[col].notna().any():
+                    merged[col] = merged[col].fillna(method='ffill')
         elif fill_method == 'bfill':
-            merged = merged.fillna(method='bfill')
+            for col in macro_df.columns:
+                if col in merged.columns and merged[col].notna().any():
+                    merged[col] = merged[col].fillna(method='bfill')
+        
+        for col in macro_df.columns:
+            if col in merged.columns:
+                nan_pct = merged[col].isna().mean()
+                if nan_pct > 0.9:
+                    merged = merged.drop(columns=[col])
+        
+        price_cols = [col for col in merged.columns if 'Close' in col]
+        if price_cols:
+            merged = merged.dropna(subset=price_cols)
         
         return merged
 

@@ -38,15 +38,29 @@ class RandomForestModel(BaseModel):
         self.feature_columns = None
         self.metadata['model_params'] = self.params
         self.metadata['model_class'] = 'RandomForest'
-    def prepare_data(self, df, test_size=0.2, shuffle=True, feature_columns=None):
+    def prepare_data(self, df, test_size=0.2, shuffle=True, feature_columns=None, target_column=None):
+        if target_column is not None:
+            self.target_column = target_column
+        
         if self.target_column not in df.columns:
             raise ValueError(f"Target column '{self.target_column}' not found in DataFrame")
+        
         if feature_columns is None:
             self.feature_columns = [col for col in df.columns if col != self.target_column]
         else:
             self.feature_columns = feature_columns
+        
+        print(f"Preparing data for {self.model_name}:")
+        print(f"  Target column: {self.target_column}")
+        print(f"  Number of features: {len(self.feature_columns)}")
+        print(f"  DataFrame shape: {df.shape}")
+        
         X = df[self.feature_columns].values
         y = df[self.target_column].values
+        
+        if np.isnan(X).any() or np.isnan(y).any():
+            print("Warning: NaN values detected in the data. Consider dropping or imputing them.")
+        
         return train_test_split(X, y, test_size=test_size, shuffle=shuffle, 
                                random_state=self.params.get('random_state'))
     def train(self, X, y):
