@@ -8,14 +8,12 @@ import time
 import datetime
 from pathlib import Path
 
-# Add parent directory to path to import from src
 sys.path.append(str(Path(__file__).parent.parent))
 from IBKR.config import *
 from IBKR.ibkr_data import get_vanguard_sp500_data
 from IBKR.ibkr_trading import TradingBot
 
 def setup_logging():
-    """Set up logging configuration"""
     log_file = LOGS_DIR / f"ibkr_bot_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
     
     logging.basicConfig(
@@ -27,22 +25,18 @@ def setup_logging():
         ]
     )
     
-    # Reduce verbosity of other libraries
     logging.getLogger('ibapi').setLevel(logging.WARNING)
     logging.getLogger('urllib3').setLevel(logging.WARNING)
     
     return logging.getLogger(__name__)
 
 def check_environment():
-    """Check if the environment is properly set up for trading"""
     logger = logging.getLogger(__name__)
     
-    # Check if model directory exists
     if not MODEL_DIR.exists():
         logger.error(f"Model directory not found: {MODEL_DIR}")
         return False
     
-    # Check for model files
     model_files = list(MODEL_DIR.glob("rf_*_20d.joblib"))
     if not model_files:
         logger.error(f"No model files found in {MODEL_DIR}")
@@ -53,7 +47,6 @@ def check_environment():
     return True
 
 def run_data_collection():
-    """Run data collection only"""
     logger = logging.getLogger(__name__)
     logger.info("Starting data collection")
     
@@ -70,7 +63,6 @@ def run_data_collection():
         return False
 
 def run_trading_bot(test_mode=False, check_interval=3600):
-    """Run the trading bot"""
     logger = logging.getLogger(__name__)
     logger.info("Starting trading bot")
     
@@ -97,7 +89,6 @@ def run_trading_bot(test_mode=False, check_interval=3600):
         logger.info("Trading bot shut down")
 
 def parse_arguments():
-    """Parse command line arguments"""
     parser = argparse.ArgumentParser(description='IBKR Trading Bot for Vanguard S&P 500 UCITS ETF')
     
     parser.add_argument('--test', action='store_true', help='Run in test mode (single execution)')
@@ -107,14 +98,12 @@ def parse_arguments():
     return parser.parse_args()
 
 def main():
-    """Main function"""
     args = parse_arguments()
     logger = setup_logging()
     
     logger.info("=== IBKR Trading Bot for Vanguard S&P 500 UCITS ETF ===")
     logger.info(f"Bot configuration: Symbol={SYMBOL}, Exchange={EXCHANGE}, Currency={CURRENCY}")
     
-    # Check environment before starting
     if not check_environment():
         logger.error("Environment check failed, exiting")
         return 1
@@ -128,4 +117,4 @@ def main():
         return 0
 
 if __name__ == "__main__":
-    sys.exit(main()) 
+    sys.exit(main())

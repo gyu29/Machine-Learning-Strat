@@ -6,4 +6,3 @@ yfinance>=0.1.70
 pandas-datareader>=0.10.0
 fredapi>=0.5.0
 joblib>=1.1.0
-# ibapi - Install manually from TWS/IB Gateway installation 
