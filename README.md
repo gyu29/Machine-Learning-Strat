@@ -83,7 +83,7 @@ Follow these steps to get buy/sell predictions:
 
 2. Then, get the current prediction:
    ```bash
-   python predict.py
+   /bin/bash "/Users/geney/Documents/GitHub/Machine-Learning-Strat/get_prediction.sh"
    ```
 
 That's it! The prediction script will display a BUY or SELL recommendation for the S&P 500 over the next 20 trading days (approximately 1 month), along with a confidence level.
