@@ -67,6 +67,9 @@ A comprehensive machine learning framework for predicting S&P 500 price movement
    - Backtesting and performance analysis
    - Strategy optimization
 
+   ***NOTE***  
+   The jupiter notebook is not finished yet
+
 ## Key Components
 
 ### Data Loaders
